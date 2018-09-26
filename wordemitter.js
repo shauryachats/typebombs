@@ -1,21 +1,39 @@
 /*
 	This logic handles the word generation and emission.
 */
-const TIME_BETWEEN_WORDS = 5;
+const TIME_BETWEEN_WORDS = 1;
+var keepEmittingWords = true;
 
-const emitWords = (socket) => {
-	setTimeout(() => {
-		let word = wordWrappedData(); 
-		socket.emit('newWord', word);
-		console.log("Emitting word : " + word.text);
-		wordList[socket.id][word.text] = word;
+class WordEmitter {
 
-		setTickTock(socket, word);
+	constructor(socket) {
+		this.socket = socket;
+		this.timer = null;
+	}
 
-		emitWords(socket);
-	}, TIME_BETWEEN_WORDS * 1000);
+	stopEmitting() {
+		clearInterval(this.timer);
+	}
+
+	startEmitting() {
+		this.emitWords();
+	}
+	
+	emitWords() {
+		this.timer = setTimeout(() => {
+			let word = wordWrappedData(); 
+			this.socket.emit('newWord', word);
+			console.log("Emitting word : " + word.text);
+			wordList[this.socket.id][word.text] = word;
+
+			setTickTock(this.socket, word);
+
+			this.emitWords();
+		}, 
+		TIME_BETWEEN_WORDS * 1000);	
+	}
 }
-exports.emitWords = emitWords;
+module.exports = WordEmitter;
 
 /*
 	setTickTock sets a timeout for when the word would

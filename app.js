@@ -4,7 +4,7 @@ app.use(express.static(__dirname + '/public'));
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-var wordEmitter = require('./wordemitter');
+var WordEmitter = require('./wordemitter');
 
 let clients = 0;
 let rooms = 0;
@@ -24,7 +24,6 @@ io.on('connection', (socket) => {
 
 	//initialize wordlist
 	wordList[socket.id] = {};
-	wordList[socket.id]['test'] = true;
 	userData[socket.id] = {};
 
 	userData[socket.id].health = 100;
@@ -35,28 +34,8 @@ io.on('connection', (socket) => {
 	socket.emit('usersOnline', clients - 1);
 	socket.broadcast.emit('usersOnline', clients - 1);
 
-	// word emitter.
-	// const wordEmitter = () => {setTimeout(() => {
-	// 	let text = Math.random().toString(36).substring(7);
-	// 	let speed = Math.random() * 5 + 5; 
-	// 	socket.emit('newString', {
-	// 		text : text,
-	// 		speed : speed
-	// 	});
-	// 	wordList[socket.id][text] = true;
-	// 	// set 
-	// 	setTimeout(() => {
-	// 		if (!wordList[socket.id].hasOwnProperty(text)) return;
-	// 		console.log(socket.nickname + " " + text + " collided!");
-	// 		delete wordList[socket.id][text];
-	// 		userData[socket.id].health -= 5;
-	// 		emitUserScore(socket);
-	// 		console.log("words remaining : " + Object.keys(wordList[socket.id]).length);
-	// 	}, speed * 1000);
-	// 	wordEmitter();
-	// }, Math.random() * 5000 + 1000)};
-	// wordEmitter();
-	wordEmitter.emitWords(socket);
+	wordEmitter = new WordEmitter(socket);
+	wordEmitter.startEmitting();
 
 	socket.on('wordTyped', (data) => {
 		console.log("got word typed : " + data);
@@ -69,6 +48,7 @@ io.on('connection', (socket) => {
 		--clients;
 		console.log('User disconnected!');
 		emitUserScore(socket);
+		wordEmitter.stopEmitting();
 		socket.emit('usersOnline', clients - 1);
 	});
 });
@@ -85,7 +65,6 @@ const emitUserScore = (socket) => {
 		points : userData[socket.id].points
 	});
 }
-// const 
 
 http.listen(3000, () => {
 	console.log('listening on *:3000');
