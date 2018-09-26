@@ -1,0 +1,26 @@
+#play {
+	/*display: block;*/
+	height: 500px;
+	width: 500px;
+	display: block;
+	border: 2px solid black;
+	margin: 0 auto;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	padding: 20px;
+}
+
+#avail {
+	text-align: center;
+}
+
+#health {
+	text-align: center;
+}
+
+#type {
+	display: block;
+	margin: 0 auto;
+	height: 50px;
+	width: 400px;
+}
