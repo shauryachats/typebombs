@@ -1,8 +1,8 @@
 /*
 	Global variables, are they bad?
 */
-const WIDTH = 800;
-const HEIGHT = 800;
+const WIDTH = 700;
+const HEIGHT = 700;
 const FPS = 45;
 const MAX_WORDS_AT_ONCE = 10;
 const VACANCY_THRESHOLD = 0.2;
@@ -28,7 +28,7 @@ $(document).ready(() => {
 		socket.emit('ready', null);
 	});
 
-	socket.on('newString', (data) => {
+	socket.on('newWord', (data) => {
 		wordAttributes[data.text] = {
 			...data,
 			x : 1.0,
