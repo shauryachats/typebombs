@@ -11,7 +11,9 @@ let canvas = null;
 let context = null;
 let socket = null;
 
-let wordlist = {};
+let wordAttributes = {}; // attributes have all data of each word.
+
+//TODO: Optimize the availableSpaces routine
 let availableSpaces = [];
 
 $(document).ready(() => {
@@ -27,25 +29,30 @@ $(document).ready(() => {
 	});
 
 	socket.on('newString', (data) => {
-		wordlist.push(
-			Object.assign(data, {
-				'x' : 1.0,
-				'y' : getRandomSpace()
-			})
-		);
+		wordAttributes[data.text] = {
+			...data,
+			x : 1.0,
+			y : getRandomSpace()
+		};
 	});
 
-	socket.on('healthUpdate', (data) => {
-		$('#health').html(`Health : ${data}`);
+	socket.on('userScoreData', (userData) => {
+		if (health <= 0) alert('Health less than zero!');
+		$('#health').html(`Health : ${userData.health}, Points : ${userData.points}`);
 	});
 
 	// set keyup task.
 	$('#type').keyup((event) => {
 		let stringInput = $('#type').val();
 		if (stringInput[ stringInput.length - 1] == ' ') {
-			$('#type').val("");
+			$('#type').val(""); 
 			stringInput = stringInput.slice(0, -1);
-			socket.emit('wordTyped', stringInput.slice(0, -1));
+			//check if the word is correct.
+			if (wordAttributes.hasOwnProperty(stringInput))
+			{
+				delete wordAttributes[stringInput];
+				socket.emit('wordTyped', stringInput);
+			}
 		}
 	});
 
@@ -62,23 +69,23 @@ const initializeCanvas = () => {
 const renderCanvas = () => {
 	//clearing the previous frame
 	context.clearRect(0, 0, WIDTH, HEIGHT);
-
 	context.font = "30px arial";
-	//drawing the wordlist
-	for (let word of wordlist) {
-		context.fillText(word.text, word.x * WIDTH, word.y * HEIGHT);
-	}
 
+	//drawing the wordAttributes
+	for (let word in wordAttributes) {
+		context.fillText(wordAttributes[word].text, wordAttributes[word].x * WIDTH, wordAttributes[word].y * HEIGHT);
+	}
 	updateWordList();
 }
 
 const updateWordList = () => {
-	for (let property in wordlist) {
-		wordlist[property].x -= 1 / (wordlist[property].speed * FPS);
-		if (wordlist[property].x < 0) {
-			wordlist.splice(property, 1);
-			availableSpaces.push(wordlist[property].y);
+	for (let property in wordAttributes) {
+		wordAttributes[property].x -= 1 / (wordAttributes[property].speed * FPS);
+		//make available space.
+		if (wordAttributes[property].x < 0) {
+			availableSpaces.push(wordAttributes[property].y);
 			availableSpaces.sort();
+			delete wordAttributes[property];
 		}
 	}
 }

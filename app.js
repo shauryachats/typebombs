@@ -25,7 +25,8 @@ io.on('connection', (socket) => {
 	//initialize wordlist
 	wordList[socket.id] = {};
 	health[socket.id] = 100;
-	socket.emit('healthUpdate', health[socket.id]);
+	points[socket.id] = 0;
+	emitUserScore(socket);
 
 	// send initial data.
 	socket.emit('usersOnline', clients - 1);
@@ -41,10 +42,11 @@ io.on('connection', (socket) => {
 		});
 		wordList[socket.id][text] = true;
 		setTimeout(() => {
+			if (!wordList[socket.id].hasOwnProperty(text)) return;
 			console.log(socket.nickname + " " + text + " collided!");
 			delete wordList[socket.id][text];
 			health[socket.id] -= 5;
-			socket.emit('healthUpdate', health[socket.id]);
+			emitUserScore(socket);
 			console.log("words remaining : " + Object.keys(wordList[socket.id]).length);
 		}, speed * 1000);
 		wordEmitter();
@@ -52,12 +54,16 @@ io.on('connection', (socket) => {
 	wordEmitter();
 
 	socket.on('wordTyped', (data) => {
+		console.log("got word typed : " + data);
+		points[socket.id] += 5;
+		emitUserScore(socket);
 		delete wordList[socket.id][data];
 	});
 
 	socket.on('disconnect', () => {
 		--clients;
 		console.log('User disconnected!');
+		emitUserScore(socket);
 		socket.emit('usersOnline', clients - 1);
 	});
 });
@@ -66,6 +72,13 @@ const selectRoom = (socket) => {
 	if (io.nsps["/"].adapter.rooms[rooms] && io.nsps["/"].adapter.rooms[rooms].length > 1) rooms++;
 	socket.join(rooms);
 	return rooms;
+}
+
+const emitUserScore = (socket) => {
+	socket.emit('userScoreData', {
+		health : health[socket.id],
+		points : points[socket.id]
+	});
 }
 
 http.listen(3000, () => {
