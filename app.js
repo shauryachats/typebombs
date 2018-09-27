@@ -4,6 +4,8 @@ app.use(express.static(__dirname + '/public'));
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+var port = (process.env.PORT || 5000);
+
 var WordEmitter = require('./wordemitter');
 
 let clients = 0;
@@ -66,6 +68,6 @@ const emitUserScore = (socket) => {
 	});
 }
 
-http.listen(3000, () => {
-	console.log('listening on *:3000');
+http.listen(port, () => {
+	console.log(`listening on PORT : ${port}`);
 });
