@@ -12,13 +12,14 @@ class WordEmitter {
 	}
 
 	stopEmitting() {
+		console.log("STOPPING emitter!");
 		clearInterval(this.timer);
 	}
 
 	startEmitting() {
 		this.emitWords();
 	}
-	
+
 	emitWords() {
 		this.timer = setTimeout(() => {
 			let word = wordWrappedData(); 
