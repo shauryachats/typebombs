@@ -9,14 +9,17 @@ class WordEmitter {
 	constructor(socket) {
 		this.socket = socket;
 		this.timer = null;
+		this.keepEmitting = false;
 	}
 
 	stopEmitting() {
 		console.log("STOPPING emitter!");
+		this.keepEmitting = false;
 		clearInterval(this.timer);
 	}
 
 	startEmitting() {
+		this.keepEmitting = true;
 		this.emitWords();
 	}
 
@@ -29,7 +32,7 @@ class WordEmitter {
 
 			setTickTock(this.socket, word);
 
-			this.emitWords();
+			if (this.keepEmitting) this.emitWords();
 		}, 
 		TIME_BETWEEN_WORDS * 1000);	
 	}
